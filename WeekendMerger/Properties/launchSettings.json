@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "Auto": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\luastg活\\lstgsharptest\\weekend\\整合\\auto_weekend"
+    },
+    "Help": {
+      "commandName": "Project",
+      "commandLineArgs": "-h"
+    },
+    "Auto_rename": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\luastg活\\lstgsharptest\\weekend\\整合\\auto_weekend -n test"
+    },
+    "配置文件 1": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\luastg活\\lstgsharptest\\weekend\\整合\\7th_weekend -n 7th"
+    }
+  }
+}
