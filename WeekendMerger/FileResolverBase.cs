@@ -23,7 +23,7 @@ namespace WeekendMerger
         {
             string? dirName = Path.GetFileName(Dir);
             if (string.IsNullOrEmpty(dirName)) throw new ArgumentException($"Parameter \"{Dir}\" is not a valid directory", nameof(Dir));
-            return Regex.Match(dirName, @"(?<=_weekend_)(.*)").Value;
+            return Regex.Match(dirName, @"(?<=_weekend_)(.*)", RegexOptions.IgnoreCase).Value;
         }
 
         public abstract void Resolve();
