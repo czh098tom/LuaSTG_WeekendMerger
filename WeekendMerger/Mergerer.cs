@@ -34,17 +34,24 @@ namespace WeekendMerger
             }
             foreach (string dir in Directory.EnumerateDirectories(directory).Shuffle())
             {
-                SubFileManipulator mani = new(dir);
-                mani.Resolve();
-                JToken clone = patchFile.DeepClone();
-                JToken? jt = clone["Attributes"]?[0];
-                if (jt != null)
+                if (Directory.EnumerateFiles(dir, "*.lstges").Any())
                 {
-                    string target = Path.Combine(Path.GetFileName(Path.GetDirectoryName(mani.File))
-                        ?? throw new ArgumentException($"Parameter \"{mani.File}\" is not a valid directory")
-                        , Path.GetFileName(mani.File));
-                    jt["attrInput"] = target;
-                    sw.WriteLine($"{1},{clone.ToString(Newtonsoft.Json.Formatting.None)}");
+                    SubFileManipulator mani = new(dir);
+                    mani.Resolve();
+                    JToken clone = patchFile.DeepClone();
+                    JToken? jt = clone["Attributes"]?[0];
+                    if (jt != null)
+                    {
+                        string target = Path.Combine(Path.GetFileName(Path.GetDirectoryName(mani.File))
+                            ?? throw new ArgumentException($"Parameter \"{mani.File}\" is not a valid directory")
+                            , Path.GetFileName(mani.File));
+                        jt["attrInput"] = target;
+                        sw.WriteLine($"{1},{clone.ToString(Newtonsoft.Json.Formatting.None)}");
+                    }
+                }
+                else
+                {
+                    IssueTracker.Instance.Report(new MergerException($"Directory \"{dir}\" does not contains any .lstges file"));
                 }
             }
         }
