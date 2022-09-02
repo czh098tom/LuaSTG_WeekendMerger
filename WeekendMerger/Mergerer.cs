@@ -32,6 +32,32 @@ namespace WeekendMerger
             {
                 sw.Write(string.Format(sr.ReadToEnd(), weekName));
             }
+            foreach (string file in Directory.EnumerateFiles(directory, "*.zip"))
+            {
+                Console.WriteLine("[Decompress]" + file);
+                var folder = Path.Combine(directory, Path.GetFileNameWithoutExtension(file));
+                if (Directory.Exists(folder))
+                {
+                    Directory.Delete(folder, true);
+                }
+                Directory.CreateDirectory(folder);
+                var zip = ZipPackage.OpenFile(file);
+                foreach (var zipfile in zip.Files)
+                {
+                    var subPath = Path.GetDirectoryName(zipfile);
+                    if (subPath != null)
+                    {
+                        subPath = Path.Combine(folder, subPath);
+                        if (!File.Exists(subPath))
+                        {
+                            Directory.CreateDirectory(subPath);
+                        }
+                    }
+                    using MemoryStream zipStream = (MemoryStream)zip.GetFileStream(zipfile);
+                    File.WriteAllBytes(Path.Combine(folder, zipfile), zipStream.ToArray());
+                    zipStream.Dispose();
+                }
+            }
             foreach (string dir in Directory.EnumerateDirectories(directory).Shuffle())
             {
                 if (Directory.EnumerateFiles(dir, "*.lstges").Any())

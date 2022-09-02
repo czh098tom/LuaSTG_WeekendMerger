@@ -56,7 +56,7 @@ namespace WeekendMerger
             if (string.IsNullOrEmpty(ar.Path)) return;
             string dir = ar.Path;
             string nameCHPath = ar.NameJSONPath ?? "nameCH.json";
-            string weekName = ar.WeekName ?? Regex.Match(Path.GetFileName(dir), @"(?<=_weekend_)(.*)").Value;
+            string weekName = ar.WeekName ?? Regex.Match(Path.GetFileName(dir), @"(?<=_[Ww]eekend_)(.*)").Value;
             using (StreamReader sr = new(nameCHPath))
             {
                 Dictionary<string, string>? dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd());
