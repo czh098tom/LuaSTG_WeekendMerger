@@ -8,7 +8,7 @@ namespace WeekendMerger
 {
     public class ZipPackage : IDisposable
     {
-        ZipFile Zip;
+        readonly ZipFile Zip;
 
         public string Password
         {
@@ -50,10 +50,11 @@ namespace WeekendMerger
             return stream;
         }
 
-        public void SaveTo(string path, string password = null)
+        public void SaveTo(string path, string? password = null)
         {
             using var file = new ZipFile(path);
-            file.Password = password;
+            if (password != null)
+                file.Password = password;
             file.BeginUpdate();
             foreach (ZipEntry entry in Zip)
                 file.Add(entry);
@@ -62,7 +63,9 @@ namespace WeekendMerger
         }
 
         #region 构造
-        ZipPackage() { }
+        ZipPackage(ZipFile file) {
+            Zip = file;
+        }
 
         ~ZipPackage()
             => Dispose();
@@ -73,33 +76,27 @@ namespace WeekendMerger
             GC.SuppressFinalize(this);
         }
 
-        public static ZipPackage OpenFile(string path, string password = null)
+        public static ZipPackage OpenFile(string path, string? password = null)
         {
-            var package = new ZipPackage
-            {
-                Zip = new ZipFile(path)
-            };
-            package.Password = password;
+            var package = new ZipPackage(new ZipFile(path));
+            if (password != null)
+                package.Password = password;
             return package;
         }
 
-        public static ZipPackage OpenStream(Stream stream, string password = null)
+        public static ZipPackage OpenStream(Stream stream, string? password = null)
         {
-            var package = new ZipPackage
-            {
-                Zip = new ZipFile(stream)
-            };
-            package.Password = password;
+            var package = new ZipPackage(new ZipFile(stream));
+            if (password != null)
+                package.Password = password;
             return package;
         }
 
-        public static ZipPackage Create(string password = null)
+        public static ZipPackage Create(string? password = null)
         {
-            var package = new ZipPackage
-            {
-                Zip = ZipFile.Create(new MemoryStream())
-            };
-            package.Password = password;
+            var package = new ZipPackage(ZipFile.Create(new MemoryStream()));
+            if (password != null)
+                package.Password = password;
             return package;
         }
         #endregion

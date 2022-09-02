@@ -46,7 +46,9 @@ namespace WeekendMerger
                 Console.WriteLine("\tpath\t\tPath of the target");
                 Console.WriteLine();
                 Console.WriteLine("\t-n\tname\tIf given, rename the stages and icon shown for specific weekend.");
-                Console.WriteLine("\t\t\tDefault is X in directory name X_weekend.");
+                Console.WriteLine("\t\t\tDefault is X in directory name X_weekend or simple for X.");
+                Console.WriteLine();
+                Console.WriteLine("\t-o\tdir\tIf given, use this path to save and build the merged project.");
                 Console.WriteLine();
                 Console.WriteLine("\t-j\tjson\tIf given, use path in [json] for the table of characters.");
                 Console.WriteLine();
@@ -55,8 +57,9 @@ namespace WeekendMerger
             }
             if (string.IsNullOrEmpty(ar.Path)) return;
             string dir = ar.Path;
+            string output_dir = ar.OutputPath ?? dir;
             string nameCHPath = ar.NameJSONPath ?? "nameCH.json";
-            string weekName = ar.WeekName ?? Regex.Match(Path.GetFileName(dir), @"(?<=_[Ww]eekend_)(.*)").Value;
+            string weekName = ar.WeekName ?? Regex.Match(Path.GetFileName(dir), @"(?<=_[Ww]eekend)?(.*)").Value;
             using (StreamReader sr = new(nameCHPath))
             {
                 Dictionary<string, string>? dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd());
@@ -65,7 +68,7 @@ namespace WeekendMerger
                     authorDict = dict;
                 }
             }
-            var m = new Mergerer(dir);
+            var m = new Mergerer(dir, output_dir);
             try
             {
                 m.Merge(weekName);
