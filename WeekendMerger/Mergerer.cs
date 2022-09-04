@@ -108,13 +108,14 @@ namespace WeekendMerger
             if (equal_dir) return;
             foreach (var dir in Directory.EnumerateDirectories(directory))
             {
-                var uri = new Uri(Path.GetFullPath(dir));
+                var dir_path = Path.GetFullPath(dir);
+                dir_path = Path.GetDirectoryName(dir_path) ?? dir_path;
                 if (Directory.EnumerateFiles(dir, "*.lstges", SearchOption.TopDirectoryOnly).Any())
                 {
                     foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
                     {
-                        var uri2 = new Uri(Path.GetFullPath(file));
-                        var target_path = Path.Combine(output_directory, uri.MakeRelativeUri(uri2).ToString());
+                        var file_path = Path.GetFullPath(file);
+                        var target_path = output_directory + file_path.Replace(dir_path, string.Empty);
                         var target_folder = Path.GetDirectoryName(target_path)
                             ?? Path.Combine(output_directory, Path.GetFileName(dir));
                         if (!Directory.Exists(target_folder))
@@ -139,25 +140,32 @@ namespace WeekendMerger
             }
             foreach (string dir in Directory.EnumerateDirectories(output_directory).Shuffle())
             {
-                if (equal_dir)
+                try
                 {
                     if (!Directory.EnumerateFiles(dir, "*.lstges", SearchOption.TopDirectoryOnly).Any())
                     {
-                        IssueTracker.Instance.Report(new MergerException($"Directory \"{dir}\" does not contains any .lstges file"));
+                        IssueTracker.Instance.Report(new MergerException(dir, $"Directory \"{dir}\" does not contains any .lstges file"));
+                        var files = Directory.EnumerateFiles(dir, "*.lstges", SearchOption.AllDirectories);
+                        foreach (var file in files)
+                            IssueTracker.Instance.Report(new MergerException(dir, $"Found .lstges file at \"{file}\" but will not use it."));
                         continue;
                     }
+                    SubFileManipulator mani = new(dir);
+                    mani.Resolve();
+                    JToken clone = patchFile.DeepClone();
+                    JToken? jt = clone["Attributes"]?[0];
+                    if (jt != null)
+                    {
+                        string target = Path.Combine(Path.GetFileName(Path.GetDirectoryName(mani.File))
+                            ?? throw new ArgumentException($"Parameter \"{mani.File}\" is not a valid directory")
+                            , Path.GetFileName(mani.File));
+                        jt["attrInput"] = target;
+                        sw.WriteLine($"{1},{clone.ToString(Newtonsoft.Json.Formatting.None)}");
+                    }
                 }
-                SubFileManipulator mani = new(dir);
-                mani.Resolve();
-                JToken clone = patchFile.DeepClone();
-                JToken? jt = clone["Attributes"]?[0];
-                if (jt != null)
+                catch (Exception ex)
                 {
-                    string target = Path.Combine(Path.GetFileName(Path.GetDirectoryName(mani.File))
-                        ?? throw new ArgumentException($"Parameter \"{mani.File}\" is not a valid directory")
-                        , Path.GetFileName(mani.File));
-                    jt["attrInput"] = target;
-                    sw.WriteLine($"{1},{clone.ToString(Newtonsoft.Json.Formatting.None)}");
+                    IssueTracker.Instance.Report(new MergerException(dir, ex.Message, ex));
                 }
             }
         }
