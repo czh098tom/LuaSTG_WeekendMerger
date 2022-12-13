@@ -12,6 +12,10 @@ namespace WeekendMerger
     public class Mergerer
     {
         private static readonly JObject patchFile = JObject.Parse(@"{""$type"":"".Project.ProjectFile, LuaSTGEditorSharp"",""Attributes"":[{""attrCap"":""Path"",""attrInput"":"""",""EditWindow"":""lstgesFile""}],""AttributeCount"":1}");
+        private static readonly JObject codeNode = JObject.Parse(@"{""$type"":"".General.Code, LuaSTGEditorSharp"",""Attributes"":[{""attrCap"":""Code"",""attrInput"":"""",""EditWindow"":""code""}],""AttributeCount"":1}");
+
+        private static readonly string codeBeforePatchFile = "if BeforeLoadSubProject then BeforeLoadSubProject(\"{0}\") end";
+        private static readonly string codeAfterPatchFile = "if AfterLoadSubProject then AfterLoadSubProject(\"{0}\") end";
 
         private readonly string directory;
         private readonly string output_directory;
@@ -152,15 +156,30 @@ namespace WeekendMerger
                     }
                     SubFileManipulator mani = new(dir);
                     mani.Resolve();
+                    JToken codeBefore = codeNode.DeepClone();
                     JToken clone = patchFile.DeepClone();
+                    JToken codeAfter = codeNode.DeepClone();
                     JToken? jt = clone["Attributes"]?[0];
+                    JToken? codeBeforeAttr = codeBefore["Attributes"]?[0];
+                    JToken? codeAfterAttr = codeAfter["Attributes"]?[0];
+                    string author = Program.GetAuthorFullNameFromDirName(dir);
                     if (jt != null)
                     {
                         string target = Path.Combine(Path.GetFileName(Path.GetDirectoryName(mani.File))
                             ?? throw new ArgumentException($"Parameter \"{mani.File}\" is not a valid directory")
                             , Path.GetFileName(mani.File));
                         jt["attrInput"] = target;
+                        if (codeBeforeAttr != null)
+                        {
+                            codeBeforeAttr["attrInput"] = string.Format(codeBeforePatchFile, author);
+                            sw.WriteLine($"{1},{codeBefore.ToString(Newtonsoft.Json.Formatting.None)}");
+                        }
                         sw.WriteLine($"{1},{clone.ToString(Newtonsoft.Json.Formatting.None)}");
+                        if (codeAfterAttr != null)
+                        {
+                            codeAfterAttr["attrInput"] = string.Format(codeAfterPatchFile, author);
+                            sw.WriteLine($"{1},{codeAfter.ToString(Newtonsoft.Json.Formatting.None)}");
+                        }
                     }
                 }
                 catch (Exception ex)

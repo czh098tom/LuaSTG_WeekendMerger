@@ -26,6 +26,13 @@ namespace WeekendMerger
             return name;
         }
 
+        public static string GetAuthorFullNameFromDirName(string dir)
+        {
+            string? dirName = Path.GetFileName(dir);
+            if (string.IsNullOrEmpty(dirName)) throw new ArgumentException($"Parameter \"{dir}\" is not a valid directory", nameof(dir));
+            return GetAuthorFullName(Regex.Match(dirName, @"(?<=_weekend_)(.*)", RegexOptions.IgnoreCase).Value);
+        }
+
         public static void Main(string[] args)
         {
             ArgsResolver ar;
@@ -59,7 +66,7 @@ namespace WeekendMerger
             string dir = ar.Path;
             string output_dir = ar.OutputPath ?? dir;
             string nameCHPath = ar.NameJSONPath ?? "nameCH.json";
-            string weekName = ar.WeekName ?? Regex.Match(Path.GetFileName(dir), @"(?<=_[Ww]eekend)?(.*)").Value;
+            string weekName = ar.WeekName ?? Regex.Match(Path.GetFileName(dir), @"(?<=_weekend)?(.*)", RegexOptions.IgnoreCase).Value;
             using (StreamReader sr = new(nameCHPath))
             {
                 Dictionary<string, string>? dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd());

@@ -16,6 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="LuaSTG_Weekend_Extension.lua">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="nameCH.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
